@@ -11,6 +11,10 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 - [Rust](https://rustup.rs/)（cargo）：`xn` コマンドのビルドに使います。
 - CPU だけで動きます。NVIDIA GPU（CUDA）や Apple Silicon の GPU（MPS）があれば自動で使います。
 
+## Google Colab で試す
+
+インストール不要です。[サンプルノートブックを Colab で開く](https://colab.research.google.com/github/nk4dev/xn/blob/main/notebooks/xn_colab.ipynb)と、無料の GPU で `xn-llm-code` か `xn-llm` を学習できます。チェックポイントは Google Drive に保存されるので、別のセッションでも `xn train --resume` で続きから学習できます。
+
 ## インストール
 
 <Tabs>

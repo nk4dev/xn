@@ -5,6 +5,8 @@ XN is a small toolkit for training GPT-style language models from scratch on a C
 - **`xn`** is a native command-line tool written in Rust. It creates projects and checks your setup on its own.
 - **The engine** (`src/xn`) is written in Python with PyTorch and does the training and generation. `xn` runs it through [uv](https://docs.astral.sh/uv/), so you never manage a Python environment yourself.
 
+No GPU or no setup? [Open the sample notebook in Google Colab](https://colab.research.google.com/github/nk4dev/xn/blob/main/notebooks/xn_colab.ipynb) ([`notebooks/xn_colab.ipynb`](notebooks/xn_colab.ipynb)): it installs XN, fetches data, trains on a free GPU and keeps checkpoints on Google Drive so `--resume` works across sessions.
+
 Documentation: https://apps.nknighta.me/xn/ (source in [`docs/`](docs/README.md)).
 
 ## Requirements
