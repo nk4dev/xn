@@ -1,0 +1,20 @@
+---
+title: Environment variables
+description: Variables that change where xn finds its engine and tools.
+sidebar:
+  order: 3
+---
+
+## `xn`
+
+| Variable | Description |
+|---|---|
+| `XN_ENGINE` | Path to the engine (the directory containing `pyproject.toml`). Default: the source `xn` was built from. Set it if you move that directory. |
+| `XN_UV` | uv executable to use. Default: `uv` on `PATH`. |
+
+## `install.sh`
+
+| Variable | Description |
+|---|---|
+| `XN_REPO` | Git URL to clone when the script is not run from a checkout. Default: `https://github.com/nk4dev/xn.git`. |
+| `XN_HOME` | Where to clone. Default: `~/.local/share/xn`. |

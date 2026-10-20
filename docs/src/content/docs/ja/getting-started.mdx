@@ -1,0 +1,87 @@
+---
+title: はじめる
+description: XN をインストールし、プロジェクトを作って、学習から生成までを行います。
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## 必要なもの
+
+- [uv](https://docs.astral.sh/uv/)：Python エンジンの実行に使います。Python（3.11 以上）と PyTorch は uv が用意します。
+- [Rust](https://rustup.rs/)（cargo）：`xn` コマンドのビルドに使います。
+- CPU だけで動きます。GPU は不要です。
+
+## インストール
+
+<Tabs>
+  <TabItem label="curl">
+    ```sh
+    curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
+    ```
+    足りない uv や Rust も公式インストーラで入れる場合：
+    ```sh
+    curl -fsSL https://apps.nknighta.me/xn/install.sh | sh -s -- --install-deps
+    ```
+  </TabItem>
+  <TabItem label="リポジトリから">
+    ```sh
+    git clone https://github.com/nk4dev/xn.git
+    cd xn
+    ./install.sh
+    ```
+  </TabItem>
+</Tabs>
+
+スクリプトは `uv sync` でエンジンの依存をインストールし、`xn` を `~/.cargo/bin` にビルドして、最後に `xn doctor` を実行します。`~/.cargo/bin` が PATH に入っていることを確認してください。更新したいときは、もう一度実行するだけです。
+
+| オプション | 説明 |
+|---|---|
+| `--install-deps` | uv や Rust が見つからないとき、止まらずにインストールする |
+| `--bin-dir DIR` | `xn` を別の場所（例：`~/.local/bin`）に入れる。`/bin` で終わる必要がある |
+
+curl から実行した場合、スクリプトはリポジトリを `~/.local/share/xn`（`XN_HOME` で変更可）に取得し、そこからビルドします。
+
+## 最初のモデル
+
+<Steps>
+
+1. プロジェクトを作ります。
+
+   ```sh
+   xn init myllm
+   cd myllm
+   ```
+
+   `xn.json`（設定）、`data/sample.txt`（サンプルの文章）、`.gitignore` が作られます。
+
+2. 環境が揃っているか確認します。
+
+   ```sh
+   xn doctor
+   ```
+
+3. 学習します。
+
+   ```sh
+   xn train --max_steps 300
+   ```
+
+   `eval_interval` ステップごとに、学習用と検証用の loss を表示します。検証用の loss が最も低いモデルを `runs/default/ckpt.pt` に保存します。
+
+4. 生成します。
+
+   ```sh
+   xn generate --prompt "To be"
+   ```
+
+</Steps>
+
+:::caution[サンプルだけでは丸暗記になります]
+`data/sample.txt` は同じ 2 段落の繰り返しなので、モデルはそれを暗唱するようになるだけです。新しい文章を書かせたい場合は、データを大幅に増やしてください。[学習データ](../guides/training-data/)を参照してください。
+:::
+
+## 次に読む
+
+- [しくみ](../how-it-works/)：`xn train` と `xn generate` の中で起きていること
+- [コマンド](../reference/commands/)と[設定](../reference/configuration/)：すべてのオプション
+- [コーディングモデルを作る](../guides/coding-model/)：ソースコードで学習する

@@ -1,0 +1,20 @@
+---
+title: 環境変数
+description: xn がエンジンやツールを探す場所を変える環境変数。
+sidebar:
+  order: 3
+---
+
+## `xn`
+
+| 変数 | 説明 |
+|---|---|
+| `XN_ENGINE` | エンジンの場所（`pyproject.toml` があるディレクトリ）。既定は `xn` をビルドしたときのソースの場所。そのディレクトリを移動したら設定する |
+| `XN_UV` | 使う uv の実行ファイル。既定は PATH 上の `uv` |
+
+## `install.sh`
+
+| 変数 | 説明 |
+|---|---|
+| `XN_REPO` | リポジトリの外から実行したときに取得する git URL。既定は `https://github.com/nk4dev/xn.git` |
+| `XN_HOME` | 取得先。既定は `~/.local/share/xn` |

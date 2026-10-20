@@ -1,0 +1,79 @@
+---
+title: コーディングモデルを作る
+description: XN をソースコードで学習させ、コードの続きを生成します。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+XN はソースコードを含め、どんなテキストでも学習できます。このガイドでは、JavaScript で小さなモデルを学習します。
+
+<Steps>
+
+1. プロジェクトを作り、サンプルを削除します。
+
+   ```sh
+   xn init js-coder && cd js-coder
+   rm data/sample.txt
+   ```
+
+2. ソースファイルを `data/` にコピーします。人が書いたコードを選び、minify されたファイル、自動生成されたファイル、テストは除きます。
+
+3. `content_loader` をそのファイルに向け、コード向けの大きさのモデルにします。コードは文章より長い文脈が必要です。
+
+   ```json
+   {
+     "vocab_size": 2048,
+     "block_size": 256,
+     "n_layer": 6,
+     "n_head": 6,
+     "n_embd": 192,
+     "dropout": 0.0,
+     "content_loader": {
+       "separator": "\n\n",
+       "sources": [{ "path": "data/*.js", "format": "text" }]
+     },
+     "max_steps": 2500,
+     "lr": 0.001,
+     "min_lr": 0.0001,
+     "warmup_steps": 200,
+     "eval_interval": 250,
+     "out_dir": "runs/js"
+   }
+   ```
+
+4. 学習します。約 300 万文字の JavaScript なら、CPU で約 20 分かかります。
+
+   ```sh
+   xn train > train.log
+   ```
+
+5. 関数の書き出しを渡して生成します。
+
+   ```sh
+   xn generate --prompt $'class Stack {\n  constructor () {' --temperature 0.5 --top_k 20
+   ```
+
+</Steps>
+
+## どのくらいの結果になるか
+
+npm の 419 ファイル（320 万文字）で学習したところ、検証用の loss は約 3.26 になりました。インデント、括弧の対応、分割代入、テンプレート文字列に加え、npm 独自の書き方（`function name (args)`、`this.#private`、オプションに関するコメント）も覚えました。例：
+
+```js
+const fs = require('fs')
+
+async function readJson (file) {
+  let result = []
+  if (file) {
+    return + `${file}`
+  }
+  const file = path.join(path, '')
+```
+
+JavaScript らしく見えますが、まだ動くコードではありません。同じ変数を二重に宣言したり、処理の筋が通らなかったりします。良くするには、データを増やす、モデルを大きくする、もっと長く学習する（できれば GPU で）のが効果的です。
+
+## コツ
+
+- プロンプトの末尾に改行やインデントを付けないでください。付けても XN が自動で取り除きます。
+- 同じ内容を繰り返すときは、`--repetition_penalty`（既定 1.1）を上げてください。
+- コードの場合、`--temperature` は 0.3〜0.6 がおすすめです。高くすると、文法的に正しくないコードが増えます。

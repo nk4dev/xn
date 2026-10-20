@@ -1,0 +1,16 @@
+{
+  "name": "xn-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync-install": "node -e \"require('fs').copyFileSync('../install.sh','public/install.sh')\"",
+    "dev": "npm run sync-install && astro dev",
+    "build": "npm run sync-install && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.6",
+    "astro": "^7.4.1",
+    "sharp": "^0.35.5"
+  }
+}

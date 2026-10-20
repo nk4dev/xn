@@ -1,0 +1,53 @@
+---
+title: Training data
+description: Fetch text with xn data and choose what to train on with content_loader.
+---
+
+## Fetch text with `xn data`
+
+`xn data add` downloads each URL (or copies a local file) into `data/` as UTF-8 text:
+
+- **Web pages**: scripts and styles are dropped and only the visible text is kept.
+- **Plain text**: Shift_JIS and EUC-JP are converted to UTF-8.
+- **[Aozora Bunko](https://www.aozora.gr.jp/) zip files**: the header, footer, ruby readings (`《》`) and editor notes (`［＃］`) are removed.
+
+```sh
+xn data add https://www.aozora.gr.jp/cards/000148/files/789_ruby_5639.zip \
+            https://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip
+xn data add https://example.com/article.html --name article.txt
+xn data list
+```
+
+Existing files are skipped unless you pass `--force`. `xn data list` shows each file's size and how much text `content_loader` will load.
+
+## Choose files with `content_loader`
+
+`content_loader` in `xn.json` decides what is read. Every document from every source is joined with `separator` into one corpus.
+
+```json
+"content_loader": {
+  "separator": "\n\n",
+  "sources": [
+    { "path": "data/*.txt", "format": "text" },
+    { "path": "data/chat.jsonl", "format": "jsonl", "field": "text" },
+    { "path": "data/qa.csv", "format": "csv", "field": "answer" },
+    { "path": "corpus/" }
+  ]
+}
+```
+
+| Key | Description |
+|---|---|
+| `path` | A file, a glob pattern (`**` matches subdirectories), or a directory (every file inside, recursively). Relative to the project directory. |
+| `format` | `text` (default): the whole file is one document. `jsonl`: one document per line. `csv`: one document per row. |
+| `field` | JSON key or CSV column to read. Default: `text`. |
+
+## How much data?
+
+| Data | What you get |
+|---|---|
+| The sample (a few thousand characters, repeated) | The model recites the sample word for word. |
+| A few novels (about 600,000 characters) | New sentences in the style of the books, but they do not make sense yet. |
+| Several MB or more of non-repeating text | Better results, especially with a larger model and more steps. |
+
+Validation holds out whole documents (`val_fraction`), so spreading your data over many files gives a more honest validation loss.

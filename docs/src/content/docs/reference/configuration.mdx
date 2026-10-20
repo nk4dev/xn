@@ -1,0 +1,74 @@
+---
+title: Configuration
+description: Every setting in xn.json.
+sidebar:
+  order: 2
+---
+
+`xn init` writes this `xn.json`. Any setting can be overridden for one run with `xn train --<setting> VALUE`.
+
+```json
+{
+  "tokenizer": "bpe",
+  "vocab_size": 1024,
+  "block_size": 128,
+  "n_layer": 4,
+  "n_head": 4,
+  "n_embd": 128,
+  "dropout": 0.1,
+  "content_loader": {
+    "separator": "\n\n",
+    "sources": [{ "path": "data/*.txt", "format": "text" }]
+  },
+  "out_dir": "runs/default",
+  "batch_size": 16,
+  "max_steps": 1000,
+  "lr": 0.0003,
+  "min_lr": 3e-05,
+  "warmup_steps": 100,
+  "weight_decay": 0.1,
+  "val_fraction": 0.1,
+  "eval_interval": 100,
+  "eval_steps": 20,
+  "seed": 1337,
+  "device": "cpu"
+}
+```
+
+## Tokenizer
+
+| Setting | Description |
+|---|---|
+| `tokenizer` | `"bpe"`: learn a byte-level BPE vocabulary from your training data when training starts. `"byte"`: use raw UTF-8 bytes (vocabulary of 256). |
+| `vocab_size` | BPE vocabulary size. Ignored for `"byte"`. |
+
+## Model
+
+| Setting | Description |
+|---|---|
+| `block_size` | Context length in tokens. |
+| `n_layer`, `n_head`, `n_embd` | Number of Transformer layers, attention heads, and embedding size. `n_embd` must be divisible by `n_head`. |
+| `dropout` | Dropout rate. |
+
+## Data
+
+| Setting | Description |
+|---|---|
+| `content_loader` | Where the training text comes from. See [Training data](../../guides/training-data/). |
+| `val_fraction` | Share held out for validation. Whole documents are held out, so training and validation never share text. With too few documents, the end of the corpus is used instead. |
+
+## Training
+
+| Setting | Description |
+|---|---|
+| `out_dir` | Where checkpoints are saved. |
+| `batch_size`, `max_steps` | Batch size and number of training steps. |
+| `lr`, `min_lr`, `warmup_steps` | The learning rate rises linearly to `lr` over `warmup_steps`, then follows a cosine curve down to `min_lr` at `max_steps`. |
+| `weight_decay` | AdamW weight decay (not applied to biases and LayerNorm). |
+| `eval_interval`, `eval_steps` | Evaluate every N steps, averaging over this many batches. |
+| `seed` | Random seed. |
+| `device` | `"cpu"`. |
+
+:::note
+The `data` setting from earlier versions has been removed. If `xn.json` still contains it, XN stops and shows how to rewrite it as `content_loader`. Checkpoints made before XN switched to its current attention layer cannot be loaded; train them again.
+:::

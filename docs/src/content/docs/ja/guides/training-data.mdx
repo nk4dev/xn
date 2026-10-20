@@ -1,0 +1,53 @@
+---
+title: 学習データ
+description: xn data でテキストを取り込み、content_loader で学習に使うファイルを選びます。
+---
+
+## `xn data` でテキストを取り込む
+
+`xn data add` は、URL ごとに内容をダウンロードし（ローカルファイルならコピーし）、UTF-8 のテキストとして `data/` に保存します。
+
+- **Web ページ**：スクリプトやスタイルを除き、表示される本文だけを残します。
+- **テキスト**：Shift_JIS や EUC-JP は UTF-8 に変換します。
+- **[青空文庫](https://www.aozora.gr.jp/)の zip**：前後の説明部分、ルビ（`《》`）、編集者の注記（`［＃］`）を取り除きます。
+
+```sh
+xn data add https://www.aozora.gr.jp/cards/000148/files/789_ruby_5639.zip \
+            https://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip
+xn data add https://example.com/article.html --name article.txt
+xn data list
+```
+
+同じ名前のファイルがあるときはスキップします。上書きするには `--force` を付けます。`xn data list` は、各ファイルの大きさと、`content_loader` が読み込む文章の量を表示します。
+
+## `content_loader` でファイルを選ぶ
+
+何を読み込むかは、`xn.json` の `content_loader` で決まります。すべての読み込み元の全ドキュメントを `separator` でつないで、1 つの学習データにします。
+
+```json
+"content_loader": {
+  "separator": "\n\n",
+  "sources": [
+    { "path": "data/*.txt", "format": "text" },
+    { "path": "data/chat.jsonl", "format": "jsonl", "field": "text" },
+    { "path": "data/qa.csv", "format": "csv", "field": "answer" },
+    { "path": "corpus/" }
+  ]
+}
+```
+
+| キー | 説明 |
+|---|---|
+| `path` | ファイル、glob パターン（`**` で下の階層も）、ディレクトリ（中のファイルをすべて）。プロジェクトのディレクトリからの相対パス |
+| `format` | `text`（既定）：ファイル全体で 1 ドキュメント。`jsonl`：1 行 1 ドキュメント。`csv`：1 行 1 ドキュメント |
+| `field` | 読み取る JSON のキー、または CSV の列名。既定は `text` |
+
+## データはどのくらい必要か
+
+| データ | 結果 |
+|---|---|
+| サンプル（数千文字の繰り返し） | サンプルをそのまま暗唱する |
+| 小説数作（約 60 万文字） | 作品らしい文体の新しい文章を書くが、意味はまだ通らない |
+| 重複のない数 MB 以上の文章 | さらに良くなる。モデルを大きくし、ステップ数を増やすと特に効く |
+
+検証用はドキュメント単位で取り分けるので（`val_fraction`）、データを多くのファイルに分けておくと、検証の loss がより正確になります。

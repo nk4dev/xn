@@ -1,0 +1,79 @@
+---
+title: Build a coding model
+description: Train XN on source code and generate code completions.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+XN works on any text, including source code. This guide trains a small model on JavaScript.
+
+<Steps>
+
+1. Create a project and remove the sample.
+
+   ```sh
+   xn init js-coder && cd js-coder
+   rm data/sample.txt
+   ```
+
+2. Copy source files into `data/`. Prefer hand-written code: skip minified bundles, generated files and tests.
+
+3. Point `content_loader` at them and use a model sized for code. Code needs a longer context than prose:
+
+   ```json
+   {
+     "vocab_size": 2048,
+     "block_size": 256,
+     "n_layer": 6,
+     "n_head": 6,
+     "n_embd": 192,
+     "dropout": 0.0,
+     "content_loader": {
+       "separator": "\n\n",
+       "sources": [{ "path": "data/*.js", "format": "text" }]
+     },
+     "max_steps": 2500,
+     "lr": 0.001,
+     "min_lr": 0.0001,
+     "warmup_steps": 200,
+     "eval_interval": 250,
+     "out_dir": "runs/js"
+   }
+   ```
+
+4. Train. With about 3 million characters of JavaScript, this takes about 20 minutes on a CPU.
+
+   ```sh
+   xn train > train.log
+   ```
+
+5. Generate from the start of a function.
+
+   ```sh
+   xn generate --prompt $'class Stack {\n  constructor () {' --temperature 0.5 --top_k 20
+   ```
+
+</Steps>
+
+## What to expect
+
+With 419 files from npm (3.2 million characters) the model reached a validation loss of about 3.26. It learned indentation, brace matching, destructuring, template strings and npm's own style (`function name (args)`, `this.#private`, comments about options), for example:
+
+```js
+const fs = require('fs')
+
+async function readJson (file) {
+  let result = []
+  if (file) {
+    return + `${file}`
+  }
+  const file = path.join(path, '')
+```
+
+The code looks like JavaScript but does not work yet: variables are declared twice and logic does not hold together. More data, a larger model and more training (ideally on a GPU) are what improve it.
+
+## Tips
+
+- Leave the prompt without a trailing newline or indentation, or let XN strip it (it does so automatically).
+- If the output loops, raise `--repetition_penalty` (default 1.1).
+- Use `--temperature 0.3` to `0.6` for code. Higher values produce more invalid syntax.

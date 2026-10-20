@@ -1,0 +1,74 @@
+---
+title: How it works
+description: What happens from a project to generated text, step by step.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+```
+xn init ─▶ xn data add ─▶ xn doctor ─▶ xn train ─▶ runs/default/ckpt.pt ─▶ xn generate
+```
+
+`xn` is a native Rust binary. It handles `init` and the system part of `doctor` itself, and forwards `data`, `train` and `generate` to the Python engine as `uv run --project <engine> python -m xn ...`. The engine lives in `src/xn/`.
+
+## Training (`xn train`)
+
+The core is `train()` in `src/xn/train.py`.
+
+<Steps>
+
+1. **Load the data** (`loader.py`). Every file matched by `content_loader` is read into a list of documents. Exact duplicates are dropped.
+
+2. **Split train and validation** (`split_docs`). The last `val_fraction` of the documents is held out, so the model is never tested on text it trained on. With too few documents, the end of the corpus is used instead.
+
+3. **Build the tokenizer** (`tokenizer.py`). With `"bpe"`, the most frequent pair of adjacent byte sequences in the training text is merged again and again until there are `vocab_size` tokens. Only the training split is used.
+
+4. **Turn text into numbers.** The whole corpus becomes one long list of token IDs.
+
+5. **Run the training loop** for `max_steps` steps (see below).
+
+6. **Evaluate and save.** Every `eval_interval` steps, the loss on the validation data is measured. When it is the best so far, the settings, weights and tokenizer are saved together to `ckpt.pt`.
+
+</Steps>
+
+### One training step
+
+1. **Sample a batch** (`get_batch`). Take `batch_size` windows of `block_size` tokens at random positions. The target is the same window shifted one token to the right:
+
+   ```
+   input  x: I   am  a   cat  .
+   target y: am  a   cat .    \n
+   ```
+
+2. **Predict** (`GPT.forward` in `model.py`). Tokens become vectors, position information is added, and they pass through `n_layer` Transformer blocks: causal self-attention (each position only looks back) followed by an MLP. The output is a probability for every possible next token at every position.
+
+3. **Measure the error.** Cross-entropy loss: the lower the probability given to the correct next token, the higher the loss.
+
+4. **Update the weights.** Backpropagation finds how to change each weight to reduce the loss. Gradients are clipped, then AdamW takes a step.
+
+5. **Adjust the learning rate** (`lr_at`). It rises linearly for `warmup_steps`, then follows a cosine curve down to `min_lr`.
+
+## Generation (`xn generate`)
+
+The core is `GPT.generate` in `model.py`.
+
+<Steps>
+
+1. **Load** (`load_checkpoint`). Rebuild the model from the settings in `ckpt.pt`, load its weights, and restore its tokenizer.
+
+2. **Encode the prompt.** Trailing whitespace is removed first: the model learned a line break plus the next line's indentation as one token, so it should produce that itself.
+
+3. **Generate one token at a time**, `max_new_tokens` times:
+   1. Feed the last `block_size` tokens to the model and take the probabilities for the next token.
+   2. Lower the scores of tokens seen in the last `repetition_window` tokens (`repetition_penalty`).
+   3. Divide by `temperature`: lower is safer, higher is more adventurous.
+   4. Keep only the `top_k` most likely tokens.
+   5. Pick one at random according to the probabilities and append it.
+
+4. **Decode.** Turn the token IDs back into bytes and then UTF-8 text.
+
+</Steps>
+
+## The key idea
+
+The model only ever learns one thing: given this context, how likely is each possible next token? Generation is just picking tokens one after another from those probabilities. What the model can learn depends on how much data it sees and how large it is. The default model has about 0.9 million parameters.

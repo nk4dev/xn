@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.astro/
+# copied from ../install.sh at build time
+public/install.sh

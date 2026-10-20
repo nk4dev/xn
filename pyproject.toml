@@ -1,0 +1,26 @@
+[project]
+name = "xn"
+version = "0.1.0"
+description = "Eazy make a LLM."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["torch>=2.4", "numpy"]
+
+[dependency-groups]
+dev = ["pytest", "ruff"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["runs", "data", "templates"]

@@ -1,0 +1,87 @@
+---
+title: Getting started
+description: Install XN, create a project, train a model and generate text.
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Requirements
+
+- [uv](https://docs.astral.sh/uv/) runs the Python engine. It installs Python (3.11 or newer) and PyTorch for you.
+- [Rust](https://rustup.rs/) (cargo) builds the `xn` command.
+- A CPU is enough. No GPU is needed.
+
+## Install
+
+<Tabs>
+  <TabItem label="curl">
+    ```sh
+    curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
+    ```
+    To also install missing uv or Rust with their official installers:
+    ```sh
+    curl -fsSL https://apps.nknighta.me/xn/install.sh | sh -s -- --install-deps
+    ```
+  </TabItem>
+  <TabItem label="From a checkout">
+    ```sh
+    git clone https://github.com/nk4dev/xn.git
+    cd xn
+    ./install.sh
+    ```
+  </TabItem>
+</Tabs>
+
+The script installs the engine's dependencies with `uv sync`, builds `xn` into `~/.cargo/bin`, and runs `xn doctor`. Make sure `~/.cargo/bin` is on your `PATH`. Run it again at any time to update.
+
+| Option | Description |
+|---|---|
+| `--install-deps` | Install missing uv or Rust instead of stopping. |
+| `--bin-dir DIR` | Install `xn` somewhere else, such as `~/.local/bin`. Must end in `/bin`. |
+
+When piped from curl, the script clones the repository into `~/.local/share/xn` (change it with `XN_HOME`) and builds from there.
+
+## Your first model
+
+<Steps>
+
+1. Create a project.
+
+   ```sh
+   xn init myllm
+   cd myllm
+   ```
+
+   This writes `xn.json` (settings), `data/sample.txt` (sample text) and a `.gitignore`.
+
+2. Check that everything is in place.
+
+   ```sh
+   xn doctor
+   ```
+
+3. Train.
+
+   ```sh
+   xn train --max_steps 300
+   ```
+
+   Every `eval_interval` steps XN prints the training and validation loss. The model with the lowest validation loss is saved to `runs/default/ckpt.pt`.
+
+4. Generate.
+
+   ```sh
+   xn generate --prompt "To be"
+   ```
+
+</Steps>
+
+:::caution[The sample only teaches memorization]
+`data/sample.txt` repeats the same two paragraphs, so the model learns to recite them. To get a model that writes new text, give it much more data. See [Training data](../guides/training-data/).
+:::
+
+## Next steps
+
+- [How it works](../how-it-works/): what happens inside `xn train` and `xn generate`.
+- [Commands](../reference/commands/) and [Configuration](../reference/configuration/): every option.
+- [Build a coding model](../guides/coding-model/): train on source code.

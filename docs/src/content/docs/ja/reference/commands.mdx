@@ -1,0 +1,37 @@
+---
+title: コマンド
+description: xn のすべてのコマンドとオプション。
+sidebar:
+  order: 1
+---
+
+`train`・`generate`・`data` は、プロジェクトのディレクトリで実行してください。`./xn.json` と `./data` を使います。
+
+| コマンド | 説明 |
+|---|---|
+| `xn init [dir]` | `dir`（既定はカレントディレクトリ）にプロジェクトを作る。`xn.json` が既にあれば中止 |
+| `xn data add URL... [--name FILE] [--force]` | 学習データを `data/` にダウンロードする。[学習データ](../../guides/training-data/)を参照 |
+| `xn data list` | `data/` のファイルと、`content_loader` が読み込む文章の量を表示する |
+| `xn doctor` | Python・uv・エンジン・PyTorch・デバイス・`./xn.json` とそのデータを確認する。問題があれば終了コード 1 |
+| `xn train [options]` | モデルをゼロから学習する |
+| `xn generate [options]` | 学習済みモデルで文章を生成する |
+| `xn --help`、`xn --version` | ヘルプ、バージョンを表示する |
+
+## `xn train`
+
+| オプション | 説明 |
+|---|---|
+| `--config FILE` | `./xn.json` の代わりに別の設定ファイルを使う |
+| `--<設定名> 値` | [設定](../configuration/)をこの実行だけ上書きする。例：`--max_steps 2000 --lr 0.001`。`content_loader` はファイルでのみ設定できる |
+
+## `xn generate`
+
+| オプション | 既定値 | 説明 |
+|---|---|---|
+| `--prompt TEXT` | 空 | 続きを書かせる文章。末尾の空白と改行は取り除かれ、モデル自身が出力する |
+| `--max_new_tokens N` | 200 | 生成するトークン数 |
+| `--temperature T` | 0.8 | 低いほど予測どおり、高いほど多様になる |
+| `--top_k K` | 50 | 確率の高い上位 K 個のトークンからだけ選ぶ |
+| `--repetition_penalty P` | 1.1 | 1 より大きいと、直近に使ったトークンが出にくくなり、繰り返しが減る。1 で無効 |
+| `--repetition_window N` | 64 | 繰り返しの抑制で見る、直近のトークン数 |
+| `--ckpt FILE` | `<out_dir>/ckpt.pt` | 読み込むチェックポイント。トークナイザも中に含まれる |

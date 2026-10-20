@@ -1,0 +1,74 @@
+---
+title: 設定
+description: xn.json のすべての設定項目。
+sidebar:
+  order: 2
+---
+
+`xn init` はこの `xn.json` を作ります。どの設定も、`xn train --<設定名> 値` でその実行だけ上書きできます。
+
+```json
+{
+  "tokenizer": "bpe",
+  "vocab_size": 1024,
+  "block_size": 128,
+  "n_layer": 4,
+  "n_head": 4,
+  "n_embd": 128,
+  "dropout": 0.1,
+  "content_loader": {
+    "separator": "\n\n",
+    "sources": [{ "path": "data/*.txt", "format": "text" }]
+  },
+  "out_dir": "runs/default",
+  "batch_size": 16,
+  "max_steps": 1000,
+  "lr": 0.0003,
+  "min_lr": 3e-05,
+  "warmup_steps": 100,
+  "weight_decay": 0.1,
+  "val_fraction": 0.1,
+  "eval_interval": 100,
+  "eval_steps": 20,
+  "seed": 1337,
+  "device": "cpu"
+}
+```
+
+## トークナイザ
+
+| 設定 | 説明 |
+|---|---|
+| `tokenizer` | `"bpe"`：学習開始時に、学習データからバイト単位の BPE 語彙を作る。`"byte"`：UTF-8 のバイトをそのまま使う（語彙 256） |
+| `vocab_size` | BPE の語彙数。`"byte"` では無視される |
+
+## モデル
+
+| 設定 | 説明 |
+|---|---|
+| `block_size` | 文脈の長さ（トークン数） |
+| `n_layer`、`n_head`、`n_embd` | Transformer の層数、アテンションのヘッド数、埋め込みの次元数。`n_embd` は `n_head` で割り切れる必要がある |
+| `dropout` | ドロップアウト率 |
+
+## データ
+
+| 設定 | 説明 |
+|---|---|
+| `content_loader` | 学習データの読み込み元。[学習データ](../../guides/training-data/)を参照 |
+| `val_fraction` | 検証用に取り分ける割合。ドキュメント単位で取り分けるので、学習用と検証用で同じ文章を共有しない。ドキュメントが少なすぎる場合は、文章の最後の部分を使う |
+
+## 学習
+
+| 設定 | 説明 |
+|---|---|
+| `out_dir` | チェックポイントの保存先 |
+| `batch_size`、`max_steps` | バッチサイズと学習ステップ数 |
+| `lr`、`min_lr`、`warmup_steps` | 学習率は `warmup_steps` の間に `lr` まで直線的に上がり、その後コサイン曲線で `max_steps` までに `min_lr` へ下がる |
+| `weight_decay` | AdamW の weight decay（バイアスと LayerNorm には適用しない） |
+| `eval_interval`、`eval_steps` | 何ステップごとに検証するか、検証 1 回あたりのバッチ数 |
+| `seed` | 乱数シード |
+| `device` | `"cpu"` |
+
+:::note
+以前のバージョンの `data` 設定は廃止しました。`xn.json` に残っていると、XN は止まって `content_loader` への書き換え方を表示します。また、アテンション層を今の形に変える前に作ったチェックポイントは読み込めないので、学習し直してください。
+:::

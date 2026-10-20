@@ -1,0 +1,51 @@
+---
+title: XN
+description: GPT 型の小さな言語モデルを CPU でゼロから学習するツール。
+template: splash
+hero:
+  tagline: Eazy make a LLM. GPT 型の小さな言語モデルを CPU でゼロから学習し、そのモデルで文章を生成できます。
+  actions:
+    - text: はじめる
+      link: getting-started/
+      icon: right-arrow
+    - text: GitHub で見る
+      link: https://github.com/nk4dev/xn
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## インストール
+
+```sh
+curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
+```
+
+[uv](https://docs.astral.sh/uv/) と [Rust](https://rustup.rs/) が必要です。`sh -s -- --install-deps` を付けると、足りないものをスクリプトがインストールします。詳しくは[はじめる](getting-started/)を参照してください。
+
+## 最初のモデルを作る
+
+```sh
+xn init myllm && cd myllm
+xn train
+xn generate --prompt "To be"
+```
+
+<CardGrid>
+  <Card title="コマンドひとつで完結" icon="seti:shell">
+    プロジェクト作成、データ取得、学習、生成まで `xn` だけで行えます。`xn` はネイティブバイナリで、
+    Python エンジンを uv 経由で呼び出すので、Python 環境を自分で管理する必要はありません。
+  </Card>
+  <Card title="どんなテキストでも" icon="document">
+    `content_loader` でテキスト・JSONL・CSV を指定できます。`xn data add` で Web ページや
+    青空文庫の作品も取り込めます。
+  </Card>
+  <Card title="バイト単位の BPE" icon="puzzle">
+    トークナイザを自分のデータから作るので、日本語・英語・ソースコードのどれでも扱えます。
+  </Card>
+  <Card title="小さくて読める" icon="open-book">
+    数百行の PyTorch で書いた decoder-only Transformer です。読んで、書き換えて、
+    結果の変化を確かめられます。
+  </Card>
+</CardGrid>

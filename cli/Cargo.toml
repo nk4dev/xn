@@ -1,0 +1,9 @@
+[package]
+name = "xn"
+version = "0.1.0"
+edition = "2024"
+description = "XN - Eazy make a LLM."
+
+[[bin]]
+name = "xn"
+path = "src/main.rs"

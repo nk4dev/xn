@@ -1,0 +1,37 @@
+---
+title: Commands
+description: Every xn command and option.
+sidebar:
+  order: 1
+---
+
+Run `train`, `generate` and `data` from your project directory: they read `./xn.json` and `./data`.
+
+| Command | Description |
+|---|---|
+| `xn init [dir]` | Create a project in `dir` (default: current directory). Fails if `xn.json` already exists. |
+| `xn data add URL... [--name FILE] [--force]` | Download training text into `data/`. See [Training data](../../guides/training-data/). |
+| `xn data list` | Show files in `data/` and how much text `content_loader` will load. |
+| `xn doctor` | Check Python, uv, the engine, PyTorch, the device, and `./xn.json` with its data. Exits with status 1 if anything is wrong. |
+| `xn train [options]` | Train a model from scratch. |
+| `xn generate [options]` | Generate text from a trained model. |
+| `xn --help`, `xn --version` | Show help or the version. |
+
+## `xn train`
+
+| Option | Description |
+|---|---|
+| `--config FILE` | Use a different settings file instead of `./xn.json`. |
+| `--<setting> VALUE` | Override any [setting](../configuration/) for this run, for example `--max_steps 2000 --lr 0.001`. `content_loader` can only be set in the file. |
+
+## `xn generate`
+
+| Option | Default | Description |
+|---|---|---|
+| `--prompt TEXT` | empty | Text for the model to continue. Trailing spaces and newlines are removed; the model adds them itself. |
+| `--max_new_tokens N` | 200 | Number of tokens to generate. |
+| `--temperature T` | 0.8 | Lower is more predictable; higher is more varied. |
+| `--top_k K` | 50 | Sample only from the K most likely tokens. |
+| `--repetition_penalty P` | 1.1 | Values above 1 make recently used tokens less likely, which reduces loops. 1 turns it off. |
+| `--repetition_window N` | 64 | How many recent tokens the repetition penalty looks at. |
+| `--ckpt FILE` | `<out_dir>/ckpt.pt` | Checkpoint to load. The model's tokenizer is stored inside it. |

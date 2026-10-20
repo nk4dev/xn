@@ -1,0 +1,11 @@
+{
+  "tokenizer": "bpe",
+  "vocab_size": 512,
+  "n_layer": 2,
+  "n_head": 2,
+  "n_embd": 64,
+  "block_size": 64,
+  "max_steps": 300,
+  "eval_interval": 50,
+  "out_dir": "runs/tiny"
+}

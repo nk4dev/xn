@@ -1,0 +1,51 @@
+---
+title: XN
+description: Train small GPT-style language models from scratch on a CPU.
+template: splash
+hero:
+  tagline: Eazy make a LLM. Train a small GPT-style language model from scratch on your CPU, then generate text with it.
+  actions:
+    - text: Get started
+      link: getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/nk4dev/xn
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Install
+
+```sh
+curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
+```
+
+You need [uv](https://docs.astral.sh/uv/) and [Rust](https://rustup.rs/). Add `sh -s -- --install-deps` to have the script install them for you. See [Getting started](getting-started/) for details.
+
+## Train your first model
+
+```sh
+xn init myllm && cd myllm
+xn train
+xn generate --prompt "To be"
+```
+
+<CardGrid>
+  <Card title="One command line tool" icon="seti:shell">
+    `xn` creates projects, fetches data, trains and generates. It is a native binary that
+    runs the Python engine through uv, so you never manage a Python environment.
+  </Card>
+  <Card title="Bring any text" icon="document">
+    Point `content_loader` at text, JSONL or CSV files, or fetch web pages and Aozora
+    Bunko books with `xn data add`.
+  </Card>
+  <Card title="Byte-level BPE" icon="puzzle">
+    A tokenizer is learned from your own data, so Japanese, English and source code all work.
+  </Card>
+  <Card title="Small and readable" icon="open-book">
+    A decoder-only Transformer in a few hundred lines of PyTorch. Read it, change it,
+    see what happens.
+  </Card>
+</CardGrid>
