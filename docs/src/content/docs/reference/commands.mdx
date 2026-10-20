@@ -9,8 +9,9 @@ Run `train`, `generate` and `data` from your project directory: they read `./xn.
 
 | Command | Description |
 |---|---|
-| `xn init [dir]` | Create a project in `dir` (default: current directory). Fails if `xn.json` already exists. |
+| `xn init [dir] [--preset NAME]` | Create a project in `dir` (default: current directory). Fails if `xn.json` already exists. `--preset xn-llm` (small text model) or `xn-llm-code` (small JS/TS code model) writes that preset's settings instead of the defaults. |
 | `xn data add URL... [--name FILE] [--force]` | Download training text into `data/`. See [Training data](../../guides/training-data/). |
+| `xn data repo OWNER/NAME [--include GLOBS] [--ref REF] [--max_kb N] [--force]` | Download a GitHub repo's source files (default `*.js,*.ts`) into `data/OWNER_NAME/`. Only repos with a permissive license (MIT, Apache-2.0, BSD, ISC, ...) are accepted; the repo, commit and license are recorded in `data/SOURCES.json`. |
 | `xn data list` | Show files in `data/` and how much text `content_loader` will load. |
 | `xn doctor` | Check Python, uv, the engine, PyTorch, the device, and `./xn.json` with its data. Exits with status 1 if anything is wrong. |
 | `xn train [options]` | Train a model from scratch. |
@@ -22,6 +23,7 @@ Run `train`, `generate` and `data` from your project directory: they read `./xn.
 | Option | Description |
 |---|---|
 | `--config FILE` | Use a different settings file instead of `./xn.json`. |
+| `--resume` | Continue an interrupted run from `<out_dir>/last.pt` (saved at every evaluation and when stopped with Ctrl-C or `kill`). Model, tokenizer and data settings come from the saved run; `--max_steps` may be raised to train longer. |
 | `--<setting> VALUE` | Override any [setting](../configuration/) for this run, for example `--max_steps 2000 --lr 0.001`. `content_loader` can only be set in the file. |
 
 ## `xn generate`

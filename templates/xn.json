@@ -26,5 +26,5 @@
   "eval_interval": 100,
   "eval_steps": 20,
   "seed": 1337,
-  "device": "cpu"
+  "device": "auto"
 }

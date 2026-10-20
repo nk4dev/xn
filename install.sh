@@ -22,6 +22,7 @@ Options:
 Environment:
   XN_REPO   git URL to clone when not run from a checkout
             (default: https://github.com/nk4dev/xn.git)
+  XN_TORCH  PyTorch build: auto (default; cuda if nvidia-smi works), cpu or cuda
   XN_HOME   where to clone (default: ~/.local/share/xn)
 USAGE
 }
@@ -90,8 +91,13 @@ info "uv: $(uv --version)"
 info "cargo: $(cargo --version)"
 
 # --- engine ----------------------------------------------------------------
-info "installing the Python engine (uv sync)"
-uv sync --project "$SRC"
+# PyTorch build: XN_TORCH=cpu|cuda, default cuda when an NVIDIA driver answers
+TORCH=${XN_TORCH:-auto}
+if [ "$TORCH" = auto ]; then
+  if nvidia-smi -L >/dev/null 2>&1; then TORCH=cuda; else TORCH=cpu; fi
+fi
+info "installing the Python engine (uv sync, PyTorch: $TORCH)"
+uv sync --project "$SRC" --no-default-groups --group "$TORCH"
 
 # --- binary ----------------------------------------------------------------
 if [ -n "$BIN_DIR" ]; then

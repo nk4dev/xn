@@ -6,6 +6,23 @@ from pathlib import Path
 from xn.loader import DEFAULT_LOADER, load_content, load_documents
 
 
+def resolve_device(device: str = "auto") -> str:
+    import torch
+
+    if device != "auto":
+        if device.startswith("cuda") and not torch.cuda.is_available():
+            raise SystemExit(
+                f'device "{device}" requested but CUDA is not available '
+                "(CPU-only PyTorch? see `xn doctor`)"
+            )
+        return device
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 @dataclass
 class Config:
     # tokenizer: "byte" (vocab 256) or "bpe" (trained on the content_loader corpus, vocab `vocab_size`)
@@ -32,7 +49,8 @@ class Config:
     eval_interval: int = 100
     eval_steps: int = 20
     seed: int = 1337
-    device: str = "cpu"
+    # "auto" (cuda > mps > cpu), or an explicit torch device such as "cpu", "cuda", "cuda:1"
+    device: str = "auto"
 
     @classmethod
     def load(cls, path: str | Path) -> "Config":
@@ -49,6 +67,9 @@ class Config:
 
     def load_docs(self) -> list[str]:
         return load_documents(self.content_loader)
+
+    def resolved_device(self) -> str:
+        return resolve_device(self.device)
 
     def save(self, path: str | Path) -> None:
         Path(path).write_text(json.dumps(asdict(self), indent=2, ensure_ascii=False))

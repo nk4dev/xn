@@ -9,7 +9,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 - [uv](https://docs.astral.sh/uv/)：Python エンジンの実行に使います。Python（3.11 以上）と PyTorch は uv が用意します。
 - [Rust](https://rustup.rs/)（cargo）：`xn` コマンドのビルドに使います。
-- CPU だけで動きます。GPU は不要です。
+- CPU だけで動きます。NVIDIA GPU（CUDA）や Apple Silicon の GPU（MPS）があれば自動で使います。
 
 ## インストール
 
@@ -32,7 +32,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-スクリプトは `uv sync` でエンジンの依存をインストールし、`xn` を `~/.cargo/bin` にビルドして、最後に `xn doctor` を実行します。`~/.cargo/bin` が PATH に入っていることを確認してください。更新したいときは、もう一度実行するだけです。
+スクリプトは `uv sync` でエンジンの依存をインストールし（`nvidia-smi` が動けば CUDA 版の PyTorch、なければ CPU 版。`XN_TORCH=cpu` か `cuda` で指定も可能）、`xn` を `~/.cargo/bin` にビルドして、最後に `xn doctor` を実行します。`~/.cargo/bin` が PATH に入っていることを確認してください。更新したいときは、もう一度実行するだけです。
 
 | オプション | 説明 |
 |---|---|

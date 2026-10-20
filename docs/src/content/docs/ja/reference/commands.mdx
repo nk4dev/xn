@@ -9,8 +9,9 @@ sidebar:
 
 | コマンド | 説明 |
 |---|---|
-| `xn init [dir]` | `dir`（既定はカレントディレクトリ）にプロジェクトを作る。`xn.json` が既にあれば中止 |
+| `xn init [dir] [--preset NAME]` | `dir`（既定はカレントディレクトリ）にプロジェクトを作る。`xn.json` が既にあれば中止。`--preset xn-llm`（軽量なテキストモデル）や `xn-llm-code`（軽量な JS/TS コードモデル）を付けると、そのプリセットの設定で作る |
 | `xn data add URL... [--name FILE] [--force]` | 学習データを `data/` にダウンロードする。[学習データ](../../guides/training-data/)を参照 |
+| `xn data repo OWNER/NAME [--include GLOBS] [--ref REF] [--max_kb N] [--force]` | GitHub リポジトリのソース（既定は `*.js,*.ts`）を `data/OWNER_NAME/` にダウンロードする。寛容型ライセンス（MIT、Apache-2.0、BSD、ISC など）のリポジトリだけ受け付け、リポジトリ・コミット・ライセンスを `data/SOURCES.json` に記録する |
 | `xn data list` | `data/` のファイルと、`content_loader` が読み込む文章の量を表示する |
 | `xn doctor` | Python・uv・エンジン・PyTorch・デバイス・`./xn.json` とそのデータを確認する。問題があれば終了コード 1 |
 | `xn train [options]` | モデルをゼロから学習する |
@@ -22,6 +23,7 @@ sidebar:
 | オプション | 説明 |
 |---|---|
 | `--config FILE` | `./xn.json` の代わりに別の設定ファイルを使う |
+| `--resume` | 中断した学習を `<out_dir>/last.pt` から再開する（評価のたび、および Ctrl-C や `kill` で止めたときに保存）。モデル・トークナイザ・データの設定は保存時のものを使い、`--max_steps` を増やせば続けて長く学習できる |
 | `--<設定名> 値` | [設定](../configuration/)をこの実行だけ上書きする。例：`--max_steps 2000 --lr 0.001`。`content_loader` はファイルでのみ設定できる |
 
 ## `xn generate`

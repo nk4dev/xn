@@ -1,6 +1,6 @@
 # XN - Eazy make a LLM.
 
-XN is a small toolkit for training GPT-style language models from scratch on a CPU, then generating text from them.
+XN is a small toolkit for training GPT-style language models from scratch on a CPU (or a GPU, if you have one), then generating text from them.
 
 - **`xn`** is a native command-line tool written in Rust. It creates projects and checks your setup on its own.
 - **The engine** (`src/xn`) is written in Python with PyTorch and does the training and generation. `xn` runs it through [uv](https://docs.astral.sh/uv/), so you never manage a Python environment yourself.
@@ -25,7 +25,7 @@ curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
 The script:
 
 1. Checks for uv and cargo. If either is missing, it stops and tells you how to get it. Pass `--install-deps` to install them with their official installers instead.
-2. Installs the engine's dependencies with `uv sync` (CPU build of PyTorch).
+2. Installs the engine's dependencies with `uv sync` (the CUDA build of PyTorch when an NVIDIA GPU is found, else the CPU build; override with `XN_TORCH=cpu|cuda`).
 3. Builds `xn` and installs it to `~/.cargo/bin`. Use `--bin-dir ~/.local/bin` to choose another directory; it must end in `/bin`.
 4. Warns if that directory is not on your `PATH`, then runs `xn doctor`.
 
@@ -35,7 +35,7 @@ When piped from curl, it clones https://github.com/nk4dev/xn.git (override with 
 
 `xn` remembers where its source was when it was built and runs the engine from there. If you move that directory, run `./install.sh` again, or set `XN_ENGINE` to the new location.
 
-To do the same steps by hand: `uv sync`, then `cargo install --path cli`.
+To do the same steps by hand: `uv sync` (or `uv sync --no-default-groups --group dev --group cuda` for an NVIDIA GPU), then `cargo install --path cli`.
 
 ## Quick start
 
@@ -61,8 +61,9 @@ Training prints train/validation loss, the learning rate and throughput (tokens 
 
 | Command | Description |
 |---|---|
-| `xn init [dir]` | Create a project in `dir` (default: current directory). Fails if `xn.json` already exists. |
+| `xn init [dir] [--preset NAME]` | Create a project in `dir` (default: current directory). Fails if `xn.json` already exists. `--preset xn-llm` (small text model) or `xn-llm-code` (small JS/TS code model) writes that preset's settings instead of the defaults. |
 | `xn data add URL... [--name FILE] [--force]` | Download training text into `data/` (see below). |
+| `xn data repo OWNER/NAME [--include GLOBS] [--ref REF] [--max_kb N] [--force]` | Download a GitHub repo's source files (default `*.js,*.ts`) into `data/OWNER_NAME/`. Only repos with a permissive license (MIT, Apache-2.0, BSD, ISC, ...) are accepted; the repo, commit and license are recorded in `data/SOURCES.json`. |
 | `xn data list` | Show files in `data/` and how much text `content_loader` will load. |
 | `xn doctor` | Check Python, uv, the engine, PyTorch, the device, and `./xn.json` with its training data. Exits with status 1 if anything is wrong. |
 | `xn train [options]` | Train a model from scratch. |
@@ -87,11 +88,20 @@ xn data list
 
 Existing files are skipped unless you pass `--force`.
 
+For code, `xn data repo` downloads a GitHub repository's source files after checking its license. Copyleft (GPL, ...) and unlicensed repositories are refused, so the model you train can be shared; keep `data/SOURCES.json` (and each `LICENSE.upstream`) with it for attribution. Set `GITHUB_TOKEN` if you hit the API rate limit.
+
+```sh
+xn init coder --preset xn-llm-code && cd coder
+xn data repo expressjs/express
+xn data repo vuejs/core --include "*.ts"
+```
+
 ### `xn train`
 
 | Option | Description |
 |---|---|
 | `--config FILE` | Use a different settings file instead of `./xn.json`. |
+| `--resume` | Continue an interrupted run from `<out_dir>/last.pt` (saved at every evaluation and when stopped with Ctrl-C or `kill`). Model, tokenizer and data settings come from the saved run; `--max_steps` may be raised to train longer. |
 | `--<setting> VALUE` | Override any setting in `xn.json` for this run, for example `--max_steps 2000 --lr 0.001`. `content_loader` can only be set in the file. |
 
 ### `xn generate`
@@ -144,7 +154,7 @@ Default file created by `xn init`:
   "eval_interval": 100,
   "eval_steps": 20,
   "seed": 1337,
-  "device": "cpu"
+  "device": "auto"
 }
 ```
 
@@ -163,7 +173,7 @@ Default file created by `xn init`:
 | `val_fraction` | Share held out for validation. Whole documents are held out, so training and validation never share text. With too few documents, the last part of the corpus is used instead. |
 | `eval_interval`, `eval_steps` | Evaluate every N steps, averaging over this many batches. |
 | `seed` | Random seed. |
-| `device` | `"cpu"`. |
+| `device` | `"auto"` uses an NVIDIA GPU (CUDA) or Apple GPU (MPS) when available, else the CPU. Or name a torch device: `"cpu"`, `"cuda"`, `"cuda:1"`, `"mps"`. |
 
 The `data` setting from earlier versions has been removed. If `xn.json` still contains it, XN stops and shows how to rewrite it as `content_loader`.
 
@@ -195,6 +205,7 @@ Every document from every source is joined with `separator` into one corpus. Exa
 |---|---|
 | `XN_ENGINE` | Path to the engine (the directory containing `pyproject.toml`). Default: the repository `xn` was built from. |
 | `XN_UV` | uv executable to use. Default: `uv` on `PATH`. |
+| `XN_TORCH` | PyTorch build: `auto` (default; `cuda` if `nvidia-smi` works, else `cpu`), `cpu` or `cuda` (CUDA 12.6). |
 
 ## Development
 

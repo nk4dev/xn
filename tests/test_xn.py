@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 import torch
 
@@ -60,6 +62,26 @@ def test_train_saves_checkpoint(tmp_path):
     assert model.cfg.n_layer == 1
     assert isinstance(tok, BPETokenizer)
     assert model.cfg.vocab_size == tok.vocab_size
+
+
+def test_resume_matches_uninterrupted_run(tmp_path):
+    data = tmp_path / "d.txt"
+    data.write_text("abcdefg hijk " * 200)
+
+    def cfg(name, steps):
+        return Config(n_layer=1, n_head=2, n_embd=32, block_size=16, batch_size=4,
+                      max_steps=steps, eval_interval=5, eval_steps=2, vocab_size=300, device="cpu",
+                      content_loader={"sources": [{"path": str(data)}]},
+                      out_dir=str(tmp_path / name))
+
+    straight = train(cfg("a", 10))
+    train(cfg("b", 5))
+    with pytest.raises(SystemExit):  # already finished
+        train(cfg("b", 5), resume=True)
+    resumed = train(cfg("b", 10), resume=True)
+    for p, q in zip(straight.parameters(), resumed.parameters(), strict=True):
+        assert torch.equal(p, q)
+    assert torch.load(tmp_path / "b" / "last.pt", weights_only=False)["step"] == 10
 
 
 def test_doctor(tmp_path, monkeypatch, capsys):
@@ -134,3 +156,9 @@ def test_repetition_penalty_discourages_seen_tokens():
     # 7 (5.0 -> 2.5) drops below 8 (4.0); once 8 is also seen, 7 (2.5) beats 8 (2.0) again
     out = model.generate(prompt, 2, top_k=1, repetition_penalty=2.0)[0, 8:].tolist()
     assert out == [8, 7]
+
+
+def test_presets_are_valid_configs():
+    for path in Path("templates/presets").glob("*.json"):
+        cfg = Config.load(path)
+        assert cfg.n_embd % cfg.n_head == 0, path

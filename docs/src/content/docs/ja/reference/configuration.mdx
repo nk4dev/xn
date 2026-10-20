@@ -31,7 +31,7 @@ sidebar:
   "eval_interval": 100,
   "eval_steps": 20,
   "seed": 1337,
-  "device": "cpu"
+  "device": "auto"
 }
 ```
 
@@ -67,7 +67,7 @@ sidebar:
 | `weight_decay` | AdamW の weight decay（バイアスと LayerNorm には適用しない） |
 | `eval_interval`、`eval_steps` | 何ステップごとに検証するか、検証 1 回あたりのバッチ数 |
 | `seed` | 乱数シード |
-| `device` | `"cpu"` |
+| `device` | `"auto"` なら NVIDIA GPU（CUDA）や Apple GPU（MPS）があれば使い、なければ CPU。`"cpu"`、`"cuda"`、`"cuda:1"`、`"mps"` のように torch のデバイスを直接指定することもできます |
 
 :::note
 以前のバージョンの `data` 設定は廃止しました。`xn.json` に残っていると、XN は止まって `content_loader` への書き換え方を表示します。また、アテンション層を今の形に変える前に作ったチェックポイントは読み込めないので、学習し直してください。

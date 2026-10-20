@@ -11,6 +11,7 @@ sidebar:
 |---|---|
 | `XN_ENGINE` | Path to the engine (the directory containing `pyproject.toml`). Default: the source `xn` was built from. Set it if you move that directory. |
 | `XN_UV` | uv executable to use. Default: `uv` on `PATH`. |
+| `XN_TORCH` | PyTorch build: `auto` (default; `cuda` if `nvidia-smi` works, else `cpu`), `cpu` or `cuda` (CUDA 12.6). |
 
 ## `install.sh`
 

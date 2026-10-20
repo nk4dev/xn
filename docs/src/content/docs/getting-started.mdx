@@ -9,7 +9,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 - [uv](https://docs.astral.sh/uv/) runs the Python engine. It installs Python (3.11 or newer) and PyTorch for you.
 - [Rust](https://rustup.rs/) (cargo) builds the `xn` command.
-- A CPU is enough. No GPU is needed.
+- A CPU is enough. An NVIDIA GPU (CUDA) or Apple Silicon GPU (MPS) is used automatically when available.
 
 ## Install
 
@@ -32,7 +32,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-The script installs the engine's dependencies with `uv sync`, builds `xn` into `~/.cargo/bin`, and runs `xn doctor`. Make sure `~/.cargo/bin` is on your `PATH`. Run it again at any time to update.
+The script installs the engine's dependencies with `uv sync` (the CUDA build of PyTorch if `nvidia-smi` works, else the CPU build; set `XN_TORCH=cpu` or `cuda` to choose), builds `xn` into `~/.cargo/bin`, and runs `xn doctor`. Make sure `~/.cargo/bin` is on your `PATH`. Run it again at any time to update.
 
 | Option | Description |
 |---|---|

@@ -31,7 +31,7 @@ sidebar:
   "eval_interval": 100,
   "eval_steps": 20,
   "seed": 1337,
-  "device": "cpu"
+  "device": "auto"
 }
 ```
 
@@ -67,7 +67,7 @@ sidebar:
 | `weight_decay` | AdamW weight decay (not applied to biases and LayerNorm). |
 | `eval_interval`, `eval_steps` | Evaluate every N steps, averaging over this many batches. |
 | `seed` | Random seed. |
-| `device` | `"cpu"`. |
+| `device` | `"auto"` uses an NVIDIA GPU (CUDA) or Apple GPU (MPS) when available, else the CPU. Or name a torch device: `"cpu"`, `"cuda"`, `"cuda:1"`, `"mps"`. |
 
 :::note
 The `data` setting from earlier versions has been removed. If `xn.json` still contains it, XN stops and shows how to rewrite it as `content_loader`. Checkpoints made before XN switched to its current attention layer cannot be loaded; train them again.

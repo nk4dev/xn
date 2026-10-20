@@ -143,3 +143,83 @@ def list_data() -> None:
         docs = Config.load("xn.json").load_docs()
         chars = sum(map(len, docs))
         print(f"content_loader: {len(docs)} unique document(s), {chars:,} chars")
+
+
+# permissive licenses whose code may be used for training and the resulting model shared
+# (keep the attribution in data/SOURCES.json); copyleft / unlicensed repos are refused
+PERMISSIVE = frozenset(
+    {"MIT", "MIT-0", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "Unlicense",
+     "CC0-1.0", "Python-2.0", "PSF-2.0", "Zlib", "BlueOak-1.0.0"}
+)
+CODE_SKIP = re.compile(r"(^|/)(node_modules|dist|build|vendor|coverage|\.git)/|\.min\.\w+$")
+SOURCES = DATA_DIR / "SOURCES.json"
+
+
+def _github_json(path: str) -> dict:
+    import json
+    import os
+
+    req = urllib.request.Request(f"https://api.github.com/{path}", headers={"User-Agent": USER_AGENT})
+    if token := os.environ.get("GITHUB_TOKEN"):
+        req.add_header("Authorization", f"Bearer {token}")
+    with urllib.request.urlopen(req, timeout=60) as res:
+        return json.load(res)
+
+
+def add_repo(
+    repo: str, include: list[str], ref: str | None = None, max_kb: int = 200, force: bool = False
+) -> None:
+    """Download a GitHub repo's source files into data/<owner>_<name>/ if its license is permissive."""
+    import fnmatch
+    import json
+
+    repo = repo.removeprefix("https://github.com/").strip("/")
+    info = _github_json(f"repos/{repo}")
+    spdx = (info.get("license") or {}).get("spdx_id") or "NONE"
+    if spdx not in PERMISSIVE:
+        raise SystemExit(
+            f"{repo}: license {spdx} is not in the permissive allow-list "
+            f"({', '.join(sorted(PERMISSIVE))}); not downloading"
+        )
+    ref = ref or info["default_branch"]
+    sha = _github_json(f"repos/{repo}/commits/{ref}")["sha"]
+    dest = DATA_DIR / repo.replace("/", "_")
+    if dest.exists() and not force:
+        print(f"skip {dest} (exists; use --force to overwrite)")
+        return
+    print(f"fetching {repo}@{sha[:10]} ({spdx})")
+    raw, _, _ = fetch(f"https://codeload.github.com/{repo}/zip/{sha}")
+    n = chars = 0
+    license_text = None
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        for member in z.infolist():
+            path = member.filename.split("/", 1)[-1]  # drop the "<repo>-<sha>/" root
+            if member.is_dir() or not path:
+                continue
+            if "/" not in path and re.match(r"(?i)licen[cs]e|copying", path):
+                license_text = z.read(member).decode("utf-8", "replace")
+            name = path.rsplit("/", 1)[-1]
+            if CODE_SKIP.search(path) or member.file_size > max_kb * 1024:
+                continue
+            if not any(fnmatch.fnmatch(name, pat) for pat in include):
+                continue
+            try:
+                text = z.read(member).decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            out = dest / path
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(text, encoding="utf-8")
+            n += 1
+            chars += len(text)
+    if not n:
+        raise SystemExit(f"{repo}: no files match {', '.join(include)}")
+    if license_text:
+        (dest / "LICENSE.upstream").write_text(license_text, encoding="utf-8")
+    sources = json.loads(SOURCES.read_text()) if SOURCES.exists() else []
+    sources = [s for s in sources if s["repo"] != repo] + [
+        {"repo": repo, "commit": sha, "license": spdx, "files": n, "chars": chars,
+         "url": f"https://github.com/{repo}/tree/{sha}"}
+    ]
+    SOURCES.write_text(json.dumps(sources, indent=2) + "\n")
+    print(f"saved {n} files ({chars:,} chars) to {dest}/ - recorded in {SOURCES}")

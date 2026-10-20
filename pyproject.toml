@@ -4,17 +4,33 @@ version = "0.1.0"
 description = "Eazy make a LLM."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["torch>=2.4", "numpy"]
+dependencies = ["numpy"]
 
+# PyTorch build: "cpu" (default) or "cuda" (NVIDIA GPU, CUDA 12.6 wheels).
+# The xn CLI picks one automatically; by hand: uv sync --no-group cpu --group cuda
 [dependency-groups]
 dev = ["pytest", "ruff"]
+cpu = ["torch>=2.4"]
+cuda = ["torch>=2.4"]
+
+[tool.uv]
+default-groups = ["dev", "cpu"]
+conflicts = [[{ group = "cpu" }, { group = "cuda" }]]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cpu" }
+torch = [
+  { index = "pytorch-cpu", group = "cpu" },
+  { index = "pytorch-cu126", group = "cuda" },
+]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [build-system]

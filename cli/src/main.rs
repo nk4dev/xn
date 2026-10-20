@@ -9,6 +9,19 @@ use std::process::{Command, ExitCode};
 const CONFIG_FILE: &str = "xn.json";
 const DEFAULT_CONFIG: &str = include_str!("../../templates/xn.json");
 const SAMPLE_TEXT: &str = include_str!("../../templates/sample.txt");
+/// `xn init --preset <name>`: (name, config, hint printed after init)
+const PRESETS: &[(&str, &str, &str)] = &[
+    (
+        "xn-llm",
+        include_str!("../../templates/presets/xn-llm.json"),
+        "add text: xn data add <url>  (e.g. an Aozora Bunko zip)",
+    ),
+    (
+        "xn-llm-code",
+        include_str!("../../templates/presets/xn-llm-code.json"),
+        "add JS/TS code: xn data repo <owner/name>  (permissive licenses only)",
+    ),
+];
 const MIN_PYTHON: (u32, u32) = (3, 11);
 
 const HELP: &str = "XN - Eazy make a LLM.
@@ -16,7 +29,8 @@ const HELP: &str = "XN - Eazy make a LLM.
 Usage: xn <command> [args]
 
 Commands:
-  init [dir]   create a new XN project (xn.json, data/sample.txt)
+  init [dir] [--preset xn-llm|xn-llm-code]
+               create a new XN project (xn.json, data/sample.txt)
   doctor       check python, uv, the engine and the project
   data         fetch / list training data   (xn data --help)
   train        train a model from scratch   (xn train --help)
@@ -24,12 +38,13 @@ Commands:
 
 Environment:
   XN_ENGINE    path to the Python engine (directory containing pyproject.toml)
-  XN_UV        uv executable to use (default: uv on PATH)";
+  XN_UV        uv executable to use (default: uv on PATH)
+  XN_TORCH     PyTorch build: auto (default; cuda if nvidia-smi works), cpu or cuda";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     let result = match args.first().map(String::as_str) {
-        Some("init") => init(Path::new(args.get(1).map_or(".", String::as_str))),
+        Some("init") => init(&args[1..]),
         Some("doctor") => Ok(doctor()),
         Some("train" | "generate" | "data") => run_engine(&args),
         Some("-h" | "--help" | "help") | None => {
@@ -48,7 +63,22 @@ fn main() -> ExitCode {
     })
 }
 
-fn init(root: &Path) -> Result<ExitCode, String> {
+fn init(args: &[String]) -> Result<ExitCode, String> {
+    let (mut dir, mut preset) = (".", None);
+    let mut it = args.iter();
+    while let Some(arg) = it.next() {
+        match arg.as_str() {
+            "--preset" => {
+                let name = it.next().ok_or("--preset needs a name")?;
+                preset = Some(PRESETS.iter().find(|p| p.0 == name).ok_or_else(|| {
+                    let names: Vec<_> = PRESETS.iter().map(|p| p.0).collect();
+                    format!("unknown preset {name} (available: {})", names.join(", "))
+                })?);
+            }
+            other => dir = other,
+        }
+    }
+    let root = Path::new(dir);
     let config = root.join(CONFIG_FILE);
     if config.exists() {
         return Err(format!("{} already exists", config.display()));
@@ -58,11 +88,16 @@ fn init(root: &Path) -> Result<ExitCode, String> {
     };
     fs::create_dir_all(root.join("data")).map_err(|e| e.to_string())?;
     write(root.join("data").join("sample.txt"), SAMPLE_TEXT)?;
-    write(config, DEFAULT_CONFIG)?;
+    write(config, preset.map_or(DEFAULT_CONFIG, |p| p.1))?;
     write(root.join(".gitignore"), "runs/\n")?;
     let abs = fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
     println!("initialized XN project in {}", abs.display());
-    println!("next: xn train  ->  xn generate --prompt \"...\"");
+    if let Some((name, _, hint)) = preset {
+        println!("preset: {name}");
+        println!("next: {hint}  ->  xn train  ->  xn generate --prompt \"...\"");
+    } else {
+        println!("next: xn train  ->  xn generate --prompt \"...\"");
+    }
     Ok(ExitCode::SUCCESS)
 }
 
@@ -94,12 +129,32 @@ fn output(cmd: &Path, args: &[&str]) -> Option<String> {
     Some(text.trim().to_string())
 }
 
+/// PyTorch build (a dependency group in the engine's pyproject.toml): $XN_TORCH, else
+/// "cuda" when an NVIDIA driver answers, else "cpu".
+fn torch_group() -> String {
+    match env::var("XN_TORCH")
+        .ok()
+        .filter(|v| !v.is_empty() && v != "auto")
+    {
+        Some(group) => group,
+        None => {
+            let gpu = Command::new("nvidia-smi")
+                .arg("-L")
+                .output()
+                .is_ok_and(|o| o.status.success());
+            (if gpu { "cuda" } else { "cpu" }).to_string()
+        }
+    }
+}
+
 fn engine_command(uv: &Path, args: &[String]) -> Command {
     let mut cmd = Command::new(uv);
     // stream progress immediately, even when output is redirected to a file
     cmd.env("PYTHONUNBUFFERED", "1")
         .args(["run", "--quiet", "--project"])
         .arg(engine_dir())
+        .args(["--no-default-groups", "--group"])
+        .arg(torch_group())
         .args(["python", "-m", "xn"])
         .args(args);
     cmd

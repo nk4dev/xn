@@ -30,10 +30,23 @@ def main() -> None:
     p_add.add_argument("urls", nargs="+", help="URLs or local files")
     p_add.add_argument("--name", help="file name under data/ (single URL only)")
     p_add.add_argument("--force", action="store_true", help="overwrite existing files")
+    p_repo = data_sub.add_parser(
+        "repo", help="download source files of a permissively licensed GitHub repo"
+    )
+    p_repo.add_argument("repo", help="owner/name or https://github.com/owner/name")
+    p_repo.add_argument("--include", default="*.js,*.ts",
+                        help="comma-separated file name globs (default: *.js,*.ts)")
+    p_repo.add_argument("--ref", help="branch, tag or commit (default: default branch)")
+    p_repo.add_argument("--max_kb", type=int, default=200, help="skip files larger than this")
+    p_repo.add_argument("--force", action="store_true", help="overwrite existing files")
     data_sub.add_parser("list", help="show data files and corpus size")
 
     p_train = sub.add_parser("train", help="train a model from scratch")
     p_train.add_argument("--config", help=f"path to JSON config (default: ./{CONFIG_FILE})")
+    p_train.add_argument(
+        "--resume", action="store_true",
+        help="continue from <out_dir>/last.pt (saved at every eval and on Ctrl-C)",
+    )
     for f in fields(Config):
         if f.name == "content_loader":
             continue  # structured fields (content_loader) are set in the JSON config only
@@ -60,6 +73,8 @@ def main() -> None:
 
         if args.data_cmd == "add":
             data.add(args.urls, args.name, args.force)
+        elif args.data_cmd == "repo":
+            data.add_repo(args.repo, args.include.split(","), args.ref, args.max_kb, args.force)
         else:
             data.list_data()
     elif args.cmd == "train":
@@ -67,14 +82,14 @@ def main() -> None:
         for f in fields(Config):
             if (v := getattr(args, f.name, None)) is not None:
                 setattr(cfg, f.name, v)
-        train(cfg)
+        train(cfg, resume=args.resume)
     else:
         model, tok = load_checkpoint(args.ckpt or Path(load_config(None).out_dir) / "ckpt.pt")
         # trailing newline/indent would be split from the whitespace token the model learned
         # (e.g. "\n    " is one token), so let the model produce it itself
         ids = tok.encode(args.prompt.rstrip() or "\n")
         out = model.generate(
-            torch.tensor([ids]), args.max_new_tokens, args.temperature, args.top_k,
+            torch.tensor([ids], device=next(model.parameters()).device), args.max_new_tokens, args.temperature, args.top_k,
             args.repetition_penalty, args.repetition_window,
         )
         print(tok.decode(out[0].tolist()))

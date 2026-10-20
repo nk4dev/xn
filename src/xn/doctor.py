@@ -1,4 +1,5 @@
 import importlib
+import shutil
 import sys
 from pathlib import Path
 
@@ -27,7 +28,14 @@ def _package(name: str) -> tuple[bool, str]:
 def _device() -> tuple[bool, str]:
     import torch
 
-    return True, "cuda available" if torch.cuda.is_available() else "cpu only"
+    if torch.cuda.is_available():
+        return True, f"cuda ({torch.cuda.get_device_name(0)}, torch {torch.__version__})"
+    if torch.backends.mps.is_available():
+        return True, "mps (Apple GPU)"
+    msg = "cpu only"
+    if torch.version.cuda is None and shutil.which("nvidia-smi"):
+        msg += " - NVIDIA GPU found but this is the CPU build of PyTorch (set XN_TORCH=cuda)"
+    return True, msg
 
 
 def _project() -> tuple[bool, str]:
