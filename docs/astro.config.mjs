@@ -12,6 +12,14 @@ export default defineConfig({
     starlight({
       title: 'XN',
       description: 'Eazy make a LLM. Train small GPT-style language models from scratch on a CPU.',
+      // OGP image (public/og.png, 1200x630); Starlight already emits og:title/description/url
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://apps.nknighta.me/xn/og.png' } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'XN — Eazy make a LLM.' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://apps.nknighta.me/xn/og.png' } },
+      ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/nk4dev/xn' }],
       // English at /xn/, Japanese at /xn/ja/ (pages in src/content/docs/ja/)
       defaultLocale: 'root',
