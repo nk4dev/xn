@@ -7,9 +7,9 @@ description: Fetch text with xn data and choose what to train on with content_lo
 
 `xn data add` downloads each URL (or copies a local file) into `data/` as UTF-8 text:
 
-- **Web pages**: scripts and styles are dropped and only the visible text is kept.
-- **Plain text**: Shift_JIS and EUC-JP are converted to UTF-8.
-- **[Aozora Bunko](https://www.aozora.gr.jp/) zip files**: the header, footer, ruby readings (`《》`) and editor notes (`［＃］`) are removed.
+- Web pages: scripts and styles are dropped and only the visible text is kept.
+- Plain text: Shift_JIS and EUC-JP are converted to UTF-8.
+- [Aozora Bunko](https://www.aozora.gr.jp/) zip files: the header, footer, ruby readings (`《》`) and editor notes (`［＃］`) are removed.
 
 ```sh
 xn data add https://www.aozora.gr.jp/cards/000148/files/789_ruby_5639.zip \
@@ -22,7 +22,7 @@ Existing files are skipped unless you pass `--force`. `xn data list` shows each 
 
 ## Choose files with `content_loader`
 
-`content_loader` in `xn.json` decides what is read. Every document from every source is joined with `separator` into one corpus.
+`content_loader` in `xn.json` decides what is read. All documents read from the sources is joined with `separator` into one corpus.
 
 ```json
 "content_loader": {

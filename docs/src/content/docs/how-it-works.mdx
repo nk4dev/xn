@@ -56,7 +56,7 @@ The core is `GPT.generate` in `model.py`.
 
 1. **Load** (`load_checkpoint`). Rebuild the model from the settings in `ckpt.pt`, load its weights, and restore its tokenizer.
 
-2. **Encode the prompt.** Trailing whitespace is removed first: the model learned a line break plus the next line's indentation as one token, so it should produce that itself.
+2. **Encode the prompt.** Trailing whitespace is removed first. The model learned a line break plus the next line's indentation as one token, so that part is left for the model to produce.
 
 3. **Generate one token at a time**, `max_new_tokens` times:
    1. Feed the last `block_size` tokens to the model and take the probabilities for the next token.

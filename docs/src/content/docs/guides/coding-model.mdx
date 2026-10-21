@@ -18,7 +18,7 @@ XN works on any text, including source code. This guide trains a small model on 
 
 2. Copy source files into `data/`. Prefer hand-written code: skip minified bundles, generated files and tests.
 
-3. Point `content_loader` at them and use a model sized for code. Code needs a longer context than prose:
+3. Set `content_loader` to read those files, and size the model for code. Code needs a longer context than prose:
 
    ```json
    {
@@ -57,7 +57,7 @@ XN works on any text, including source code. This guide trains a small model on 
 
 ## What to expect
 
-With 419 files from npm (3.2 million characters) the model reached a validation loss of about 3.26. It learned indentation, brace matching, destructuring, template strings and npm's own style (`function name (args)`, `this.#private`, comments about options), for example:
+With 419 files from npm (3.2 million characters) the model reached a validation loss of about 3.26. It learned indentation, brace matching, destructuring, template strings and npm's own style (`function name (args)`, `this.#private`, comments about options). Here is a sample of its output:
 
 ```js
 const fs = require('fs')

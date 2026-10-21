@@ -22,7 +22,7 @@ No install needed: [open the sample notebook in Colab](https://colab.research.go
     ```sh
     curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
     ```
-    To also install missing uv or Rust with their official installers:
+    To also install missing uv or Rust with their official installers, run:
     ```sh
     curl -fsSL https://apps.nknighta.me/xn/install.sh | sh -s -- --install-deps
     ```
@@ -36,7 +36,7 @@ No install needed: [open the sample notebook in Colab](https://colab.research.go
   </TabItem>
 </Tabs>
 
-The script installs the engine's dependencies with `uv sync` (the CUDA build of PyTorch if `nvidia-smi` works, else the CPU build; set `XN_TORCH=cpu` or `cuda` to choose), builds `xn` into `~/.cargo/bin`, and runs `xn doctor`. Make sure `~/.cargo/bin` is on your `PATH`. Run it again at any time to update.
+The script installs the engine's dependencies with `uv sync`, builds `xn` into `~/.cargo/bin`, and runs `xn doctor`. PyTorch is installed as the CUDA build if `nvidia-smi` works, otherwise as the CPU build. You can also choose with `XN_TORCH=cpu` or `cuda`. Make sure `~/.cargo/bin` is on your `PATH`. Run it again at any time to update.
 
 | Option | Description |
 |---|---|
@@ -81,7 +81,7 @@ When piped from curl, the script clones the repository into `~/.local/share/xn` 
 </Steps>
 
 :::caution[The sample only teaches memorization]
-`data/sample.txt` repeats the same two paragraphs, so the model learns to recite them. To get a model that writes new text, give it much more data. See [Training data](../guides/training-data/).
+`data/sample.txt` repeats the same two paragraphs, so the model learns to recite them. To get a model that writes new text, give it much more data. For details, see [Training data](../guides/training-data/).
 :::
 
 ## Next steps
