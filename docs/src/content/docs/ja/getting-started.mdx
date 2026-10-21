@@ -22,7 +22,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
     ```sh
     curl -fsSL https://apps.nknighta.me/xn/install.sh | sh
     ```
-    足りない uv や Rust も公式インストーラで入れる場合：
+    足りない uv や Rust も公式インストーラで入れる場合は、次のように実行します。
     ```sh
     curl -fsSL https://apps.nknighta.me/xn/install.sh | sh -s -- --install-deps
     ```
@@ -36,7 +36,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-スクリプトは `uv sync` でエンジンの依存をインストールし（`nvidia-smi` が動けば CUDA 版の PyTorch、なければ CPU 版。`XN_TORCH=cpu` か `cuda` で指定も可能）、`xn` を `~/.cargo/bin` にビルドして、最後に `xn doctor` を実行します。`~/.cargo/bin` が PATH に入っていることを確認してください。更新したいときは、もう一度実行するだけです。
+スクリプトは `uv sync` でエンジンの依存をインストールし、`xn` を `~/.cargo/bin` にビルドして、最後に `xn doctor` を実行します。PyTorch は、`nvidia-smi` が動けば CUDA 版、動かなければ CPU 版が入ります。`XN_TORCH=cpu` か `cuda` で指定することもできます。`~/.cargo/bin` が PATH に入っていることを確認してください。更新したいときは、もう一度実行するだけです。
 
 | オプション | 説明 |
 |---|---|
@@ -81,7 +81,7 @@ curl から実行した場合、スクリプトはリポジトリを `~/.local/s
 </Steps>
 
 :::caution[サンプルだけでは丸暗記になります]
-`data/sample.txt` は同じ 2 段落の繰り返しなので、モデルはそれを暗唱するようになるだけです。新しい文章を書かせたい場合は、データを大幅に増やしてください。[学習データ](../guides/training-data/)を参照してください。
+`data/sample.txt` は同じ 2 段落の繰り返しなので、モデルはそれを暗唱するようになるだけです。新しい文章を書かせたい場合は、データを大幅に増やしてください。詳しくは[学習データ](../guides/training-data/)を参照してください。
 :::
 
 ## 次に読む

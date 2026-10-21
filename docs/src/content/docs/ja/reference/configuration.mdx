@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-`xn init` はこの `xn.json` を作ります。どの設定も、`xn train --<設定名> 値` でその実行だけ上書きできます。
+`xn init` はこの `xn.json` を作ります。どの設定も `xn train --<設定名> 値` でその実行だけ上書きできます。
 
 ```json
 {
@@ -67,7 +67,7 @@ sidebar:
 | `weight_decay` | AdamW の weight decay（バイアスと LayerNorm には適用しない） |
 | `eval_interval`、`eval_steps` | 何ステップごとに検証するか、検証 1 回あたりのバッチ数 |
 | `seed` | 乱数シード |
-| `device` | `"auto"` なら NVIDIA GPU（CUDA）や Apple GPU（MPS）があれば使い、なければ CPU。`"cpu"`、`"cuda"`、`"cuda:1"`、`"mps"` のように torch のデバイスを直接指定することもできます |
+| `device` | `"auto"` なら NVIDIA GPU（CUDA）や Apple GPU（MPS）があれば使い、なければ CPU。`"cpu"`、`"cuda"`、`"cuda:1"`、`"mps"` のように torch のデバイスを直接指定することもできる |
 
 :::note
 以前のバージョンの `data` 設定は廃止しました。`xn.json` に残っていると、XN は止まって `content_loader` への書き換え方を表示します。また、アテンション層を今の形に変える前に作ったチェックポイントは読み込めないので、学習し直してください。
